@@ -1,0 +1,41 @@
+pipeline {
+    agent{
+        docker{
+            image 'golang:1.22-alpine'
+            args '-u 0:0'
+        }
+    }
+    stages{
+        stage('Build'){
+            steps{
+                echo 'Building the Go application...'
+                sh 'go build -o app main.go'
+                echo 'Build Completed Succesfully.'
+            }
+        }
+    }
+    stage('Test & Run'){
+        steps{
+            echo 'Running the  compiled binary for a simple test...'
+            sh './app Jenkins-Build'
+        }
+    }
+    stage('Archive artifacts'){
+        steps{
+            echo 'Archiving the built application...'
+            archiveArtifacts artifacts:'apps', onlyIfSuccessful: true
+        }
+    }
+}
+
+post{
+    always{
+        sh 'rm -f app'
+    }
+    success {
+        echo "Pipeline succesful for deployement."
+    }
+    failure {
+        echo "Pipline failed. check build logs."
+    }
+}
